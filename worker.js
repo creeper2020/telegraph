@@ -115,7 +115,7 @@ $(document).ready(function() {
       language: 'zh',
       dropZoneEnabled: true,
       browseOnZoneClick: true,
-      dropZoneTitle: "拖拽文件到这里...",
+      dropZoneTitle: "拖拽或粘贴文件到这里...",
       dropZoneClickTitle: "",
       browseClass: "btn btn-light",
       uploadClass: "btn btn-light",
@@ -135,7 +135,7 @@ $(document).ready(function() {
   
     switch (selectedInterface) {
       case 'tg':
-        acceptTypes = 'image/gif,image/jpeg,image/png';
+        acceptTypes = 'image/gif,image/jpeg,image/jpg,image/png,video/mp4';
         break;
     }
     $('#fileInput').attr('accept', acceptTypes);
@@ -169,17 +169,17 @@ $(document).ready(function() {
       }
   });
     
-  // 处理上传文件函数  
+  // 处理上传文件函数
   async function uploadFile(file) {
       try {
-          if (file.type === 'image/gif') {
+          if (file.type === 'image/gif' || file.type === 'video/mp4') {
               if (file.size > 5 * 1024 * 1024) {
-                  toastr.error('GIF 文件必须≤5MB');
+                  toastr.error('文件必须≤5MB');
                   return;
               }
           } else {
               const compressedFile = await compressImage(file);
-              file = compressedFile; // 如果不是GIF，使用压缩后的文件
+              file = compressedFile; // 如果不是GIF或视频，使用压缩后的文件
           }
   
           $('#uploadingText').show();
@@ -196,7 +196,7 @@ $(document).ready(function() {
       } finally {
           $('#uploadingText').hide();
       }
-  }
+  }  
   
   //处理图片压缩事件
   async function compressImage(file, quality = 0.5, maxResolution = 20000000) {
