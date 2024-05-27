@@ -143,43 +143,59 @@ $(document).ready(function() {
   
   // 处理文件选择事件  
   async function handleFileSelection() {
-    const selectedInterface = $('#interfaceSelector').val();
-    const file = $('#fileInput')[0].files[0];
+      const file = $('#fileInput')[0].files[0];
   
-    if (file) {
-      if (file.type === 'image/gif') {
-        if (file.size > 5 * 1024 * 1024) {
-          toastr.error('GIF 文件必须≤5MB');
-          return;
-        } else {
+      if (file) {
           await uploadFile(file);
-          return;
-        }
-      } else {
-        const compressedFile = await compressImage(file);
-        await uploadFile(compressedFile);
-        return;
       }
-    }
   }
-   
+
+  // 监听粘贴事件
+  $(document).on('paste', function(event) {
+      // 获取粘贴板中的内容
+      const clipboardData = event.originalEvent.clipboardData;
+      if (clipboardData && clipboardData.items) {
+          // 遍历粘贴板中的项
+          for (let i = 0; i < clipboardData.items.length; i++) {
+              const item = clipboardData.items[i];
+              // 如果是文件类型
+              if (item.kind === 'file') {
+                  const pasteFile = item.getAsFile();
+                  // 上传粘贴的文件
+                  uploadFile(pasteFile);
+                  break; // 处理完第一个文件即可
+              }
+          }
+      }
+  });
+    
   // 处理上传文件函数  
   async function uploadFile(file) {
-    try {
-      $('#uploadingText').show();
-      const formData = new FormData($('#uploadForm')[0]);
-      formData.set('file', file, file.name);
-      const uploadResponse = await fetch('/upload', { method: 'POST', body: formData });
-      originalImageURL = await handleUploadResponse(uploadResponse);
-      $('#fileLink').val(originalImageURL);
-      $('.form-group').show();
-      adjustTextareaHeight($('#fileLink')[0]);
-    } catch (error) {
-      console.error('上传文件时出现错误:', error);
-      $('#fileLink').val('文件上传失败！');
-    } finally {
-      $('#uploadingText').hide();
-    }
+      try {
+          if (file.type === 'image/gif') {
+              if (file.size > 5 * 1024 * 1024) {
+                  toastr.error('GIF 文件必须≤5MB');
+                  return;
+              }
+          } else {
+              const compressedFile = await compressImage(file);
+              file = compressedFile; // 如果不是GIF，使用压缩后的文件
+          }
+  
+          $('#uploadingText').show();
+          const formData = new FormData($('#uploadForm')[0]);
+          formData.set('file', file, file.name);
+          const uploadResponse = await fetch('/upload', { method: 'POST', body: formData });
+          originalImageURL = await handleUploadResponse(uploadResponse);
+          $('#fileLink').val(originalImageURL);
+          $('.form-group').show();
+          adjustTextareaHeight($('#fileLink')[0]);
+      } catch (error) {
+          console.error('上传文件时出现错误:', error);
+          $('#fileLink').val('文件上传失败！');
+      } finally {
+          $('#uploadingText').hide();
+      }
   }
   
   //处理图片压缩事件
