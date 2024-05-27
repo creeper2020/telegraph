@@ -35,7 +35,7 @@ function handleRootRequest() {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
     <meta name="description" content="基于Cloudflare Workers的图床服务">
     <meta name="keywords" content="Workers图床, Cloudflare, Workers, JIASU.IN, 图床">
-    <title>JIASU.IN-基于Workers的图床服务</title>
+    <title>基于Workers的图床服务</title>
     <link rel="icon" href="https://p1.meituan.net/csc/c195ee91001e783f39f41ffffbbcbd484286.ico" type="image/x-icon">
     <!-- Twitter Bootstrap CSS -->
     <link href="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/twitter-bootstrap/4.6.1/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
