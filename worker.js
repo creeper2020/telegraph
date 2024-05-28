@@ -74,7 +74,7 @@ function handleRootRequest() {
         <!-- 接口选择下拉菜单 -->
         <div class="form-group mb-3">
           <select class="custom-select" id="interfaceSelector" name="interface">
-            <option value="tg">tg</option>
+            <option value="tg">TG</option>
           </select>
         </div>
         <!-- 文件选择 -->
@@ -134,7 +134,7 @@ $(document).ready(function() {
       acceptTypes: 'image/gif,image/jpeg,image/jpg,image/png,video/mp4',
       gifAndVideoMaxSize: 5 * 1024 * 1024, // GIF 和视频文件的最大大小为 5MB
       otherMaxSize: 5 * 1024 * 1024, // 非 GIF 和视频文件的最大大小为 5MB
-      compressImage: true
+      compressImage: true //默认开启压缩
     },
     // 添加其他接口的配置信息
   };
