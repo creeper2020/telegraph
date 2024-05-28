@@ -127,18 +127,26 @@ $(document).ready(function() {
     }).on('filebatchselected', handleFileSelection)
       .on('fileclear', handleFileClear);
   }
+
+  // 配置接口信息
+  const interfaceConfig = {
+    tg: {
+      acceptTypes: 'image/gif,image/jpeg,image/jpg,image/png,video/mp4',
+      gifAndVideoMaxSize: 5 * 1024 * 1024, // GIF 和视频文件的最大大小为 5MB
+      otherMaxSize: 5 * 1024 * 1024, // 非 GIF 和视频文件的最大大小为 5MB
+      compressImage: true
+    },
+    // 添加其他接口的配置信息
+  };
   
   // 处理接口选择器变更事件  
   $('#interfaceSelector').change(function() {
     const selectedInterface = $(this).val();
-    let acceptTypes = '';
-  
-    switch (selectedInterface) {
-      case 'tg':
-        acceptTypes = 'image/gif,image/jpeg,image/jpg,image/png,video/mp4';
-        break;
+    const interfaceInfo = interfaceConfig[selectedInterface];
+    
+    if (interfaceInfo) {
+      $('#fileInput').attr('accept', interfaceInfo.acceptTypes);
     }
-    $('#fileInput').attr('accept', acceptTypes);
   }).trigger('change');
   
   // 处理文件选择事件  
@@ -148,6 +156,62 @@ $(document).ready(function() {
       if (file) {
           await uploadFile(file);
       }
+  }
+
+  // 处理上传文件函数
+  async function uploadFile(file) {
+      try {
+          const selectedInterface = $('#interfaceSelector').val();
+          const interfaceInfo = interfaceConfig[selectedInterface];
+          
+          if (!interfaceInfo) {
+            console.error('未找到接口配置信息');
+            return;
+          }
+  
+          if (['image/gif', 'video/mp4'].includes(file.type)) {
+              if (file.size > interfaceInfo.gifAndVideoMaxSize) {
+                  toastr.error('文件必须≤' + interfaceInfo.gifAndVideoMaxSize / (1024 * 1024) + 'MB');
+                  return;
+              }
+              // 不压缩，直接上传原文件
+          } else {
+              if (interfaceInfo.compressImage === true) {
+                  const compressedFile = await compressImage(file);
+                  file = compressedFile;
+              } else if (interfaceInfo.compressImage === false) {
+                  if (file.size > interfaceInfo.otherMaxSize) {
+                      toastr.error('文件必须≤' + interfaceInfo.otherMaxSize / (1024 * 1024) + 'MB');
+                      return;
+                  }
+                  // 不压缩，直接上传原文件
+              }
+          }
+  
+          $('#uploadingText').show();
+          const formData = new FormData($('#uploadForm')[0]);
+          formData.set('file', file, file.name);
+          const uploadResponse = await fetch('/upload', { method: 'POST', body: formData });
+          originalImageURL = await handleUploadResponse(uploadResponse);
+          $('#fileLink').val(originalImageURL);
+          $('.form-group').show();
+          adjustTextareaHeight($('#fileLink')[0]);
+      } catch (error) {
+          console.error('上传文件时出现错误:', error);
+          $('#fileLink').val('文件上传失败！');
+      } finally {
+          $('#uploadingText').hide();
+      }
+  }
+
+  // 处理上传响应函数
+  async function handleUploadResponse(response) {
+    if (response.ok) {
+      const result = await response.json();
+      return result.data;
+    } else {
+      return '文件上传失败！';
+    }
   }
 
   // 监听粘贴事件
@@ -168,36 +232,7 @@ $(document).ready(function() {
           }
       }
   });
-    
-  // 处理上传文件函数
-  async function uploadFile(file) {
-      try {
-          if (file.type === 'image/gif' || file.type === 'video/mp4') {
-              if (file.size > 5 * 1024 * 1024) {
-                  toastr.error('文件必须≤5MB');
-                  return;
-              }
-          } else {
-              const compressedFile = await compressImage(file);
-              file = compressedFile; // 如果不是GIF或视频，使用压缩后的文件
-          }
-  
-          $('#uploadingText').show();
-          const formData = new FormData($('#uploadForm')[0]);
-          formData.set('file', file, file.name);
-          const uploadResponse = await fetch('/upload', { method: 'POST', body: formData });
-          originalImageURL = await handleUploadResponse(uploadResponse);
-          $('#fileLink').val(originalImageURL);
-          $('.form-group').show();
-          adjustTextareaHeight($('#fileLink')[0]);
-      } catch (error) {
-          console.error('上传文件时出现错误:', error);
-          $('#fileLink').val('文件上传失败！');
-      } finally {
-          $('#uploadingText').hide();
-      }
-  }  
-  
+
   //处理图片压缩事件
   async function compressImage(file, quality = 0.5, maxResolution = 20000000) {
     $('#compressingText').show();
@@ -231,16 +266,6 @@ $(document).ready(function() {
       };
       reader.readAsDataURL(file);
     });
-  }
-  
-  // 处理上传响应函数
-  async function handleUploadResponse(response) {
-    if (response.ok) {
-      const result = await response.json();
-      return result.data;
-    } else {
-      return '文件上传失败！';
-    }
   }
   
   // 处理按钮点击事件 
