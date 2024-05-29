@@ -1,6 +1,7 @@
 ⚠️需要网络能够访问telegraph
 ### worker
-无服务器部署telegraph图床，支持上传大于5MB的文件！
+支持黏贴上传，压缩上传，无服务器部署！
+
 复制worker.js代码，修改第二行example.com为你的自定义域名即可！
 
 支持配置多接口，修改代码中的interfaceConfigs和getImageURL即可！
